@@ -31,3 +31,21 @@ void CBarMaterial::Write(COutputter& output)
 {
 	output << setw(16) << E << setw(16) << Area << endl;
 }
+
+/*********************************/
+// Q4 material class by Jinhao Xu
+/*********************************/
+
+bool CQ4Material::Read(ifstream& Input)
+{
+	Input >> nset;	// Number of property set
+
+	Input >> E >> nu;	// Young's modulus and Poisson's ratio
+
+	return true;
+}
+
+void CQ4Material::Write(COutputter& output)
+{
+	output << setw(16) << E << setw(16) << nu << endl;
+}

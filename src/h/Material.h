@@ -52,3 +52,20 @@ public:
 //!	Write material data to Stream
 	virtual void Write(COutputter& output);
 };
+
+/*********************************/
+// Q4 material class by Jinhao Xu
+/*********************************/
+
+class CQ4Material : public CMaterial
+{
+public:
+
+	double nu;	// Poisson's ratio
+
+public:
+
+	virtual bool Read(ifstream& Input);
+
+	virtual void Write(COutputter& output);
+};
