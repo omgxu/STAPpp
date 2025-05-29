@@ -16,6 +16,9 @@
  Definition of class 'Clock'
  ==============================================================================*/
 
+// 计时器，用于统计运行时间
+// unchanged
+
 #pragma once
 
 #include <time.h>

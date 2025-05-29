@@ -8,7 +8,7 @@
 /*     http://www.comdyn.cn/                                                 */
 /*****************************************************************************/
 
-#include "Bar.h"
+#include "Elements/Bar.h"
 
 #include <iostream>
 #include <iomanip>
@@ -31,6 +31,8 @@ CBar::CBar()
 //	Desconstructor
 CBar::~CBar()
 {
+	delete[] nodes_;
+    delete[] LocationMatrix_;
 }
 
 //	Read element data from stream Input

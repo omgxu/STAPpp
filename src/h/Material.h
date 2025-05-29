@@ -52,3 +52,21 @@ public:
 //!	Write material data to Stream
 	virtual void Write(COutputter& output);
 };
+
+/*****************************************************************************/
+/* T3 Material class by Yu Jing                                       */
+/*****************************************************************************/
+class CT3Material : public CMaterial
+{
+public:
+
+	double nu; // Poisson's ratio
+
+public:
+	
+//!	Read material data from stream Input
+	virtual bool Read(ifstream& Input);
+
+//!	Write material data to Stream
+	virtual void Write(COutputter& output);
+};

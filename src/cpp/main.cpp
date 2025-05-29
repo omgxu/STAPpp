@@ -8,8 +8,10 @@
 /*     http://www.comdyn.cn/                                                 */
 /*****************************************************************************/
 
+// unchanged
+
 #include "Domain.h"
-#include "Bar.h"
+#include "Elements/Bar.h"
 #include "Outputter.h"
 #include "Clock.h"
 
@@ -20,13 +22,14 @@ int main(int argc, char *argv[])
 	if (argc != 2) //  Print help message
 	{
 	    cout << "Usage: stap++ InputFileName\n";
-		exit(1);
+		exit(1); // 程序运行时需要一个输入参数：输入文件名。如果没有提供，打印用法说明并退出
 	}
 
 	string filename(argv[1]);
-    size_t found = filename.find_last_of('.');
+    size_t found = filename.find_last_of('.'); // 获取输入文件名，判断是否有扩展名
 
     // If the input file name is provided with an extension
+    /* TODO  if (found == std::string::npos) ? */ 
     if (found != std::string::npos) {
         if (filename.substr(found) == ".dat")
             filename = filename.substr(0, found);
@@ -57,6 +60,7 @@ int main(int argc, char *argv[])
 
     COutputter* Output = COutputter::GetInstance();
 
+//  如果输入数据只用于检查有效性而不进行求解（如 MODEX = 0），直接退出
     if (!FEMData->GetMODEX())
     {
         *Output << "Data check completed !" << endl << endl;
@@ -66,19 +70,24 @@ int main(int argc, char *argv[])
 //  Allocate global vectors and matrices, such as the Force, ColumnHeights,
 //  DiagonalAddress and StiffnessMatrix, and calculate the column heights
 //  and address of diagonal elements
+//  分配全局矩阵空间（刚度矩阵、力向量等）
 	FEMData->AllocateMatrices();
     
 //  Assemble the banded gloabl stiffness matrix
+//  组装全局带状刚度矩阵
 	FEMData->AssembleStiffnessMatrix();
     
     double time_assemble = timer.ElapsedTime();
 
 //  Solve the linear equilibrium equations for displacements
+//  初始化基于 LDL^T 分解的求解器
 	CLDLTSolver* Solver = new CLDLTSolver(FEMData->GetStiffnessMatrix());
     
 //  Perform L*D*L(T) factorization of stiffness matrix
+//  对刚度矩阵进行分解
     Solver->LDLT();
 
+/* TODO what meaning?*/
 #ifdef _DEBUG_
     Output->PrintStiffnessMatrix();
 #endif
@@ -98,6 +107,7 @@ int main(int argc, char *argv[])
         Output->PrintDisplacement();
 #endif
             
+//      Output nodal displacements
         Output->OutputNodalDisplacement();
 
 //      Calculate and output stresses of all elements
