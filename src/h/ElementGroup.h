@@ -13,8 +13,8 @@
 #include <fstream>
 
 #include "Element.h"
-#include "Bar.h"
-#include "Q4.h"
+#include "Elements/Bar.h"
+#include "Elements/Q4.h"
 #include "Material.h"
 #include "Node.h"
 
