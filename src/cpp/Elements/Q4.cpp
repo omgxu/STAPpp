@@ -379,3 +379,37 @@ void CQ4::ElementStress(double stress[12], double* Displacement)
     CalculateStressAt(etas[1], psis[0], xe, ye, E, v, de, stress + 6);
     CalculateStressAt(etas[1], psis[1], xe, ye, E, v, de, stress + 9);
 }
+
+void CQ4::CalculateGaussPointCoordinates(double* gaussCoords)
+{
+    double pos = 1 / std::sqrt(3.0);
+    double eta[2] = {-pos, pos};
+    double psi[2] = {-pos, pos};
+
+    // 转换节点坐标到局部坐标系
+    double n[3], i[3], j[3], xe[4], ye[4];
+    Convert3d22d4Q(nodes_, n, i, j, xe, ye);
+
+    // 遍历高斯点，计算其在三维空间中的实际坐标
+    int index = 0;
+    for (int e = 0; e < 2; ++e)
+    {
+        for (int p = 0; p < 2; ++p)
+        {
+            // 形函数
+            double N1 = 0.25 * (1 - eta[e]) * (1 - psi[p]);
+            double N2 = 0.25 * (1 + eta[e]) * (1 - psi[p]);
+            double N3 = 0.25 * (1 + eta[e]) * (1 + psi[p]);
+            double N4 = 0.25 * (1 - eta[e]) * (1 + psi[p]);
+
+            // 高斯点在局部坐标系中的坐标
+            double x_local = N1 * xe[0] + N2 * xe[1] + N3 * xe[2] + N4 * xe[3];
+            double y_local = N1 * ye[0] + N2 * ye[1] + N3 * ye[2] + N4 * ye[3];
+
+            // 转换到三维全局坐标系
+            gaussCoords[index++] = x_local * i[0] + y_local * j[0];
+            gaussCoords[index++] = x_local * i[1] + y_local * j[1];
+            gaussCoords[index++] = x_local * i[2] + y_local * j[2];
+        }
+    }
+}

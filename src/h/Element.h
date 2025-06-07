@@ -97,6 +97,9 @@ public:
 //!	Calculate element stress 
 	virtual void ElementStress(double* stress, double* Displacement) = 0;
 
+//! Calculate Gauss point coordinates
+	virtual void CalculateGaussPointCoordinates(double* gaussCoords) {}
+
 //! Return number of nodes per element
     inline unsigned int GetNEN() { return NEN_; }
     
