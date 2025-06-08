@@ -390,26 +390,98 @@ void CQ4::CalculateGaussPointCoordinates(double* gaussCoords)
     double n[3], i[3], j[3], xe[4], ye[4];
     Convert3d22d4Q(nodes_, n, i, j, xe, ye);
 
-    // 遍历高斯点，计算其在三维空间中的实际坐标
+    // 遍历高斯点，标准顺序（逆时针）：
+    // (-pos,-pos), (+pos,-pos), (-pos,+pos), (+pos,+pos)
+    const int order[4][2] = {
+        {0, 0},  // 第1个高斯点 (-pos,-pos)  左下
+        {1, 0},  // 第2个高斯点 (+pos,-pos)  右下
+        {0, 1},  // 第3个高斯点 (-pos,+pos)  左上
+        {1, 1}   // 第4个高斯点 (+pos,+pos)  右上
+    };
+
     int index = 0;
-    for (int e = 0; e < 2; ++e)
+    for (int gp = 0; gp < 4; ++gp)
     {
-        for (int p = 0; p < 2; ++p)
+        int e = order[gp][0];
+        int p = order[gp][1];
+
+        // 形函数
+        double N1 = 0.25 * (1 - eta[e]) * (1 - psi[p]);
+        double N2 = 0.25 * (1 + eta[e]) * (1 - psi[p]);
+        double N3 = 0.25 * (1 + eta[e]) * (1 + psi[p]);
+        double N4 = 0.25 * (1 - eta[e]) * (1 + psi[p]);
+
+        // 高斯点在局部坐标系中的坐标
+        double x_local = N1 * xe[0] + N2 * xe[1] + N3 * xe[2] + N4 * xe[3];
+        double y_local = N1 * ye[0] + N2 * ye[1] + N3 * ye[2] + N4 * ye[3];
+
+        // 转换到三维全局坐标系
+        gaussCoords[index++] = x_local * i[0] + y_local * j[0];
+        gaussCoords[index++] = x_local * i[1] + y_local * j[1];
+        gaussCoords[index++] = x_local * i[2] + y_local * j[2];
+    }
+}
+
+void CQ4::CalculateGaussPointDisplacement(double* gaussDisp, double* Displacement)
+{
+    double pos = 1 / std::sqrt(3.0);
+    double eta[2] = {-pos, pos};
+    double psi[2] = {-pos, pos};
+
+    // 转换节点位移到局部坐标系
+    double n[3], i[3], j[3], xe[4], ye[4];
+    Convert3d22d4Q(nodes_, n, i, j, xe, ye);
+
+    // 获取节点位移
+    double d[12];
+    for (unsigned index = 0; index < 12; ++index)
+    {
+        if (LocationMatrix_[index])
         {
-            // 形函数
-            double N1 = 0.25 * (1 - eta[e]) * (1 - psi[p]);
-            double N2 = 0.25 * (1 + eta[e]) * (1 - psi[p]);
-            double N3 = 0.25 * (1 + eta[e]) * (1 + psi[p]);
-            double N4 = 0.25 * (1 - eta[e]) * (1 + psi[p]);
-
-            // 高斯点在局部坐标系中的坐标
-            double x_local = N1 * xe[0] + N2 * xe[1] + N3 * xe[2] + N4 * xe[3];
-            double y_local = N1 * ye[0] + N2 * ye[1] + N3 * ye[2] + N4 * ye[3];
-
-            // 转换到三维全局坐标系
-            gaussCoords[index++] = x_local * i[0] + y_local * j[0];
-            gaussCoords[index++] = x_local * i[1] + y_local * j[1];
-            gaussCoords[index++] = x_local * i[2] + y_local * j[2];
+            d[index] = Displacement[LocationMatrix_[index] - 1];
         }
+        else
+        {
+            d[index] = 0.0;
+        }
+    }
+
+    // 转换到局部坐标系的节点位移
+    double de[8] = {
+        d[0] * i[0] + d[1] * i[1] + d[2] * i[2],   d[0] * j[0] + d[1] * j[1] + d[2] * j[2],
+        d[3] * i[0] + d[4] * i[1] + d[5] * i[2],   d[3] * j[0] + d[4] * j[1] + d[5] * j[2],
+        d[6] * i[0] + d[7] * i[1] + d[8] * i[2],   d[6] * j[0] + d[7] * j[1] + d[8] * j[2],
+        d[9] * i[0] + d[10] * i[1] + d[11] * i[2], d[9] * j[0] + d[10] * j[1] + d[11] * j[2]
+    };
+
+    // 遍历高斯点，标准顺序（逆时针）：
+    // (-pos,-pos), (+pos,-pos), (-pos,+pos), (+pos,+pos)
+    const int order[4][2] = {
+        {0, 0},  // 第1个高斯点 (-pos,-pos)  左下
+        {1, 0},  // 第2个高斯点 (+pos,-pos)  右下
+        {0, 1},  // 第3个高斯点 (-pos,+pos)  左上
+        {1, 1}   // 第4个高斯点 (+pos,+pos)  右上
+    };
+
+    int index = 0;
+    for (int gp = 0; gp < 4; ++gp)
+    {
+        int e = order[gp][0];
+        int p = order[gp][1];
+
+        // 形函数
+        double N1 = 0.25 * (1 - eta[e]) * (1 - psi[p]);
+        double N2 = 0.25 * (1 + eta[e]) * (1 - psi[p]);
+        double N3 = 0.25 * (1 + eta[e]) * (1 + psi[p]);
+        double N4 = 0.25 * (1 - eta[e]) * (1 + psi[p]);
+
+        // 高斯点在局部坐标系中的位移
+        double ux_local = N1 * de[0] + N2 * de[2] + N3 * de[4] + N4 * de[6];
+        double uy_local = N1 * de[1] + N2 * de[3] + N3 * de[5] + N4 * de[7];
+
+        // 转换到三维全局坐标系
+        gaussDisp[index++] = ux_local * i[0] + uy_local * j[0];
+        gaussDisp[index++] = ux_local * i[1] + uy_local * j[1];
+        gaussDisp[index++] = ux_local * i[2] + uy_local * j[2];
     }
 }

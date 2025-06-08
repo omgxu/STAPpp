@@ -362,24 +362,46 @@ void COutputter::OutputElementStress()
 
 				*this << "                X             Y             Z                X             Y             Z                X             Y             Z                X             Y             Z" << endl;
 
-				double positionQ4[12];
+				double gaussCoordsQ4[12];
 
 				for (unsigned int Ele = 0; Ele < NUME; Ele++)
 				{
 					CElement& Element = EleGrp[Ele];
-					Element.CalculateGaussPointCoordinates(positionQ4);
+					Element.CalculateGaussPointCoordinates(gaussCoordsQ4);
 
 					*this << setw(5) << Ele + 1;
 
 					for (int i = 0; i < 4; i++)
 					{
-						*this << setw(17) << positionQ4[i * 3]
-							  << setw(14) << positionQ4[i * 3 + 1]
-							  << setw(14) << positionQ4[i * 3 + 2];
+						*this << setw(17) << gaussCoordsQ4[i * 3]
+							  << setw(14) << gaussCoordsQ4[i * 3 + 1]
+							  << setw(14) << gaussCoordsQ4[i * 3 + 2];
 					}
 
 					*this << endl;
 				}
+
+				*this << "               D_X           D_Y           D_Z              D_X           D_Y           D_Z              D_X           D_Y           D_Z              D_X           D_Y           D_Z" << endl;
+				
+				double gaussDispQ4[12];
+				for (unsigned int Ele = 0; Ele < NUME; Ele++)
+				{
+					CElement& Element = EleGrp[Ele];
+					Element.CalculateGaussPointDisplacement(gaussDispQ4, Displacement);
+
+					*this << setw(5) << Ele + 1;
+
+					for (int i = 0; i < 4; i++)
+					{
+						*this << setw(17) << gaussDispQ4[i * 3]
+							  << setw(14) << gaussDispQ4[i * 3 + 1]
+							  << setw(14) << gaussDispQ4[i * 3 + 2];
+					}
+
+					*this << endl;
+				}
+
+
 				*this << endl;
 				break;
 

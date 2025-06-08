@@ -35,4 +35,7 @@ public:
 
 //! Calculate Gauss point coordinates
 	virtual void CalculateGaussPointCoordinates(double* gaussCoords);
+
+//! Calculate Gauss point displacement
+	virtual void CalculateGaussPointDisplacement(double* gaussDisp, double *Displacement);
 };

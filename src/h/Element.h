@@ -100,6 +100,9 @@ public:
 //! Calculate Gauss point coordinates
 	virtual void CalculateGaussPointCoordinates(double* gaussCoords) {}
 
+//! Calculate Gauss point displacement
+    virtual void CalculateGaussPointDisplacement(double* gaussDisp, double *Displacement) {}
+
 //! Return number of nodes per element
     inline unsigned int GetNEN() { return NEN_; }
     
