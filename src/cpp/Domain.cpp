@@ -8,8 +8,6 @@
 /*     http://www.comdyn.cn/                                                 */
 /*****************************************************************************/
 
-// 主要的类对象
-// unchanged
 
 #include "Domain.h"
 #include "Material.h"
@@ -107,7 +105,7 @@ bool CDomain::ReadData(string FileName, string OutFile)
 //  计算自由度编号（DOF编号）
 //  计算全局方程编号
 //  每个节点的每个自由度对应一个全局方程编号
-/* TODO CalculateEquationNumber?*/
+/* TODO CalculateEquationNumber? */
 	CalculateEquationNumber();
 	Output->OutputEquationNumber();
 
@@ -328,4 +326,3 @@ bool CDomain::AssembleForce(unsigned int LoadCase)
 
 	return true;
 }
-

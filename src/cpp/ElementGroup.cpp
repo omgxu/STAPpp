@@ -8,9 +8,6 @@
 /*     http://www.comdyn.cn/                                                 */
 /*****************************************************************************/
 
-// 读取并管理一个“单元组”中所有元素及其材料信息
-// unchanged
-
 #include "ElementGroup.h"
 #include "Domain.h"
 
@@ -51,6 +48,11 @@ CElement& CElementGroup::operator[](unsigned int i)
     return *(CElement*)((std::size_t)(ElementList_) + i*ElementSize_);
 }
 
+CElement& CElementGroup::GetElement(unsigned int index)
+{
+    return *(CElement*)((std::size_t)(ElementList_) + index*ElementSize_);
+}
+
 //! Return index-th material in this element group
 CMaterial& CElementGroup::GetMaterial(unsigned int i)
 {
@@ -69,6 +71,10 @@ void CElementGroup::CalculateMemberSize()
             ElementSize_ = sizeof(CBar);
             MaterialSize_ = sizeof(CBarMaterial);
             break;
+        case ElementTypes::T3:
+            ElementSize_ = sizeof(CT3);
+            MaterialSize_ = sizeof(CT3Material);
+            break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::CalculateMemberSize." << std::endl;
             exit(5);
@@ -84,6 +90,9 @@ void CElementGroup::AllocateElements(std::size_t size)
         case ElementTypes::Bar:
             ElementList_ = new CBar[size];
             break;
+        case ElementTypes::T3:
+            ElementList_ = new CT3[size];
+            break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::AllocateElement." << std::endl;
             exit(5);
@@ -97,6 +106,9 @@ void CElementGroup::AllocateMaterials(std::size_t size)
     {
         case ElementTypes::Bar:
             MaterialList_ = new CBarMaterial[size];
+            break;
+        case ElementTypes::T3:
+            MaterialList_ = new CT3Material[size];
             break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::AllocateMaterial." << std::endl;

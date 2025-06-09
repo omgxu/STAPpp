@@ -21,6 +21,7 @@ using namespace std;
 void CLDLTSolver::LDLT()
 {
 	unsigned int N = K.dim();
+	cout << "K.dim() = " << N << endl;
     unsigned int* ColumnHeights = K.GetColumnHeights();   // Column Hights
 
 	for (unsigned int j = 2; j <= N; j++)      // Loop for column 2:n (Numbering starting from 1)

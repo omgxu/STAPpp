@@ -161,12 +161,16 @@ void COutputter::OutputElementInfo()
 			case ElementTypes::Bar: // Bar element
 				OutputBarElements(EleGrp);
 				break;
+			case ElementTypes::T3: // 3T element
+				OutputT3Elements(EleGrp);
+				break;
 		    default:
 		        *this << ElementType << " has not been implemented yet." << endl;
 		        break;
 		}
 	}
 }
+
 //	Output bar element data
 void COutputter::OutputBarElements(unsigned int EleGrp)
 {
@@ -209,6 +213,52 @@ void COutputter::OutputBarElements(unsigned int EleGrp)
         *this << setw(5) << Ele+1;
 		ElementGroup[Ele].Write(*this);
     }
+
+	*this << endl;
+}
+
+//  Output T3 element data
+void COutputter::OutputT3Elements(unsigned int EleGrp)
+{
+	CDomain* FEMData = CDomain::GetInstance();
+
+	CElementGroup& ElementGroup = FEMData->GetEleGrpList()[EleGrp];
+	unsigned int NUMMAT = ElementGroup.GetNUMMAT();
+
+	*this << " M A T E R I A L   D E F I N I T I O N" << endl
+		  << endl;
+	*this << " NUMBER OF DIFFERENT SETS OF MATERIAL" << endl
+		  << " AND CROSS-SECTIONAL  CONSTANTS  . . . .( NPAR(3) ) . . =" << setw(5) << NUMMAT
+		  << endl
+		  << endl;
+
+	*this << "  SET       YOUNG'S     POISSON'S     THICKNESS" << endl
+		  << " NUMBER     MODULUS        RATIO          T" << endl
+		  << "               E              NU            H" << endl;
+
+	*this << setiosflags(ios::scientific) << setprecision(5);
+
+	//	Loop over for all property sets
+	for (unsigned int mset = 0; mset < NUMMAT; mset++)
+	{
+		*this << setw(5) << mset+1;
+		ElementGroup.GetMaterial(mset).Write(*this);
+	}
+
+	*this << endl << endl
+		  << " E L E M E N T   I N F O R M A T I O N" << endl;
+	
+	*this << " ELEMENT     NODE     NODE       MATERIAL" << endl
+		  << " NUMBER-N      I        J       SET NUMBER" << endl;
+
+	unsigned int NUME = ElementGroup.GetNUME();
+
+	//	Loop over for all elements in group EleGrp
+	for (unsigned int Ele = 0; Ele < NUME; Ele++)
+	{
+		*this << setw(5) << Ele+1;
+		ElementGroup[Ele].Write(*this);
+	}
 
 	*this << endl;
 }
@@ -297,6 +347,62 @@ void COutputter::OutputElementStress()
 				*this << endl;
 
 				break;
+
+			case ElementTypes::T3: // T3 element
+			/* TODO */
+				double stress3T[3];
+				#ifndef _TEST_
+				*this << "  ELEMENT        LOCAL          ELEMENT        STRESS" << endl
+					  << "  NUMBER         SXX            SYY            SXY" << endl;
+				#else
+				double GPPosition[9];
+				double GPDisplacement[9];
+				double weights3T[3];
+				*this << "  ELEMENT    GP               GAUSS POINTS POSITION    "
+					  << "                GAUSS POINTS DISPLACEMENTS       " 
+					  << "               GAUSS POINTS STRESSES              INTEGRATE"
+					  << std::endl
+					  << "   INDEX   INDEX          X            Y              Z"
+					  << "                DX           DY           DZ     "
+					  << "          SXX           SYY           SXY          WEIGHTS"
+					  << std::endl;
+				#endif
+
+				for (unsigned int Ele = 0; Ele < NUME; Ele++)
+				{
+					CElement& Element = EleGrp.GetElement(Ele);
+					#ifndef _TEST_
+					static_cast<CT3&>(Element).ElementStress(stress3T, Displacement);
+					#else
+					static_cast<CTriangle&>(Element).ElementStress(stress3T, Displacement, GPPosition, GPDisplacement, weights3T);
+					#endif
+					CT3Material material = *static_cast<CT3Material*>(Element.GetElementMaterial());
+					
+					#ifndef _TEST_
+					*this << setw(5) << Ele + 1 << setw(20) << stress3T[0] 
+					      << setw(15) << stress3T[1] << setw(15) << stress3T[2] << endl;
+					#else
+					for (unsigned GPIndex=0; GPIndex<3; GPIndex++)
+					{
+						*this << setw(6) << Ele+1 << setw(8) << GPIndex+1 
+							  << setw(18) << GPPosition[3*GPIndex] 
+							  << setw(14) << GPPosition[3*GPIndex + 1] 
+							  << setw(14) << GPPosition[3*GPIndex + 2]
+							  << setw(17) << GPDisplacement[3*GPIndex]
+							  << setw(14) << GPDisplacement[3*GPIndex + 1]
+							  << setw(14) << GPDisplacement[3*GPIndex + 2]
+							  << setw(17) << stress3T[0]
+							  << setw(14) << stress3T[1]
+							  << setw(14) << stress3T[2]
+							  << setw(14) << weights3T[GPIndex]
+							  << std::endl;
+					}
+					#endif
+				}
+
+				*this << endl;
+				break;
+
 
 			default: // Invalid element type
 				cerr << "*** Error *** Elment type " << ElementType

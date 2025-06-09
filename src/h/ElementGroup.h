@@ -81,6 +81,9 @@ public:
     //! Allocate array of derived materials
     void AllocateMaterials(std::size_t size);
 
+    //! Read element data from the input data file
+    bool ReadElementData(ifstream& Input);
+
     //! Return element type of this group
     ElementTypes GetElementType() { return ElementType_; }
 
@@ -90,6 +93,8 @@ public:
     //! operator []
     //! For the sake of efficiency, the index bounds are not checked
     CElement& operator[](unsigned int i);
+
+    CElement& GetElement(unsigned int i);
 
     //! Return the index-th material in this group
     CMaterial& GetMaterial(unsigned int i);
