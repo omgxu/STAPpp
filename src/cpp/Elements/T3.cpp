@@ -172,7 +172,6 @@ void CT3::ElementStiffness(double* Matrix)
 //  Calculate element stress
 void CT3::ElementStress(double* stress, double* Displacement)
 {
-    /*TODO: 修改成二维情况*/
     // Nodal coordinates
     const CNode& n1 = *nodes_[0];
     const CNode& n2 = *nodes_[1];
@@ -254,11 +253,6 @@ void CT3::ElementStress(double* stress, double* Displacement)
 //     }
 // #endif
 }
-
-#ifdef _VIB_
-void CT3::ElementMass(double* mass) {
-}
-#endif
 
 // void CT3::ElementPostInfo(double* stress, double* Displacement, double* PrePositions,
 //                                 double* PostPositions)
