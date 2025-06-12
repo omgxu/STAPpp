@@ -1,9 +1,14 @@
+import argparse
 import matplotlib.pyplot as plt
+
+parser = argparse.ArgumentParser(description="绘制T3网格")
+parser.add_argument('file', type=str, help='输入的dat文件路径')
+args = parser.parse_args()
 
 node_coords = {}
 elements = []
 
-with open(r'c:\Users\ASUS\Desktop\ccode\STAPpp_git\STAPpp\src\data\T3\T3patch.dat', encoding='utf-8') as f:
+with open(args.file, encoding='utf-8') as f:
     lines = f.readlines()
 
 # 读取节点
@@ -25,7 +30,7 @@ for line in lines:
         elements.append((n1, n2, n3))
 
 # 绘制
-plt.figure(figsize=(6,6))
+plt.figure(figsize=(12,4))
 for elem in elements:
     pts = [node_coords[n] for n in elem] + [node_coords[elem[0]]]  # 闭合三角形
     xs, ys = zip(*pts)
@@ -34,15 +39,14 @@ for elem in elements:
     # 标注单元号
     cx = sum(xs[:-1])/3
     cy = sum(ys[:-1])/3
-    plt.text(cx, cy, str(elements.index(elem)+1), color='red', fontsize=15, ha='center', va='center')
+    plt.text(cx, cy, str(elements.index(elem)+1), color='red', fontsize=10, ha='center', va='center')
 
 # 标注节点
 for num, (x, y) in node_coords.items():
     plt.plot(x, y, 'bo')
-    plt.text(x, y, str(num), color='blue', fontsize=9, ha='right', va='bottom')
+    plt.text(x, y, str(num), color='blue', fontsize=10, ha='right', va='bottom')
 
 plt.axis('equal')
 plt.xlabel('X')
 plt.ylabel('Y')
-plt.title('T3 Patch Elements')
 plt.show()

@@ -1,3 +1,5 @@
+# 绘制分片试验图像
+
 import matplotlib.pyplot as plt
 import numpy as np
 
