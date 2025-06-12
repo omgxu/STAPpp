@@ -30,10 +30,13 @@ public:
     virtual void ElementStiffness(double* Matrix);
 
     //!	Calculate element stress
-    virtual void ElementStress(double* stress, double* Displacement, double* Positions = nullptr);
+    virtual void ElementStress(double* stress, double* Displacement);
 
     //!	Return the size of the element stiffness matrix (stored as an array column by column)
     virtual unsigned int SizeOfStiffnessMatrix();
+
+    //! Calculate Gauss point displacement
+	virtual void CalculateGaussPointDisplacement(double* gaussDisp, double *Displacement);
 
 #ifdef _VIB_
 //!	Calculate element mass matrix (Upper triangular matrix, stored as an array column by colum)

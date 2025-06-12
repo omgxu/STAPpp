@@ -13,7 +13,8 @@
 #include <fstream>
 
 #include "Element.h"
-#include "Bar.h"
+#include "Elements/Bar.h"
+#include "Elements/Q9.h"
 #include "Material.h"
 #include "Node.h"
 
@@ -23,8 +24,9 @@ using namespace std;
 enum ElementTypes
 {
     UNDEFINED = 0,
-    Bar,    // Bar element
-    Q4,     // 4Q element
+    Bar = 1,    // Bar element
+    Q9 = 2,     // 9Q element
+    Q4 = 3,     // 4Q element
     T3,     // 3T element
     H8,     // 8H element
     Beam,   // Beam element
@@ -91,6 +93,8 @@ public:
 
     //! Return the index-th material in this group
     CMaterial& GetMaterial(unsigned int i);
+
+    CElement& GetElement(unsigned int index);
 
     //! Return the number of material/section property setss in this element group
     unsigned int GetNUMMAT() { return NUMMAT_; }

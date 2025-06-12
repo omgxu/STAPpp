@@ -17,6 +17,15 @@ using namespace std;
 
 template <class type> void clear( type* a, unsigned int N );	// Clear an array
 
+inline void normalize(double ptr[3])
+{
+    double sum = std::sqrt((ptr[0] * ptr[0]) + (ptr[1] * ptr[1]) + (ptr[2] * ptr[2]));
+    ptr[0] /= sum;
+    ptr[1] /= sum;
+    ptr[2] /= sum;
+}
+
+
 //!	Element base class
 /*!	All type of element classes should be derived from this base class */
 class CElement
@@ -86,6 +95,7 @@ public:
 
 //!	Calculate element stress 
 	virtual void ElementStress(double* stress, double* Displacement) = 0;
+    //virtual void ElementStress(double* stress, double* Displacement, double* Positions = nullptr);
 
 //! Return number of nodes per element
     inline unsigned int GetNEN() { return NEN_; }
@@ -101,4 +111,7 @@ public:
     
     //! Return the dimension of the location matrix
     inline unsigned int GetND() { return ND_; }
+
+    //! Calculate Gauss point displacement
+    virtual void CalculateGaussPointDisplacement(double* gaussDisp, double *Displacement) {}
 };

@@ -9,7 +9,8 @@
 /*****************************************************************************/
 
 #include "Domain.h"
-#include "Bar.h"
+#include "Elements/Bar.h"
+#include "Elements/Q9.h"
 #include "Outputter.h"
 #include "Clock.h"
 
