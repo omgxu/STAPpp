@@ -22,13 +22,17 @@ CNode::CNode(double X, double Y, double Z)
     bcode[0] = 0;	// Boundary codes
     bcode[1] = 0;
     bcode[2] = 0;
+	bcode[3] = 0;	
+	bcode[4] = 0;
+	bcode[5] = 0;
+	
 };
 
 //	Read element data from stream Input
 bool CNode::Read(ifstream& Input)
 {
 	Input >> NodeNumber;	// node number
-	Input >> bcode[0] >> bcode[1] >> bcode[2]
+	Input >> bcode[0] >> bcode[1] >> bcode[2] >> bcode[3] >> bcode[4] >> bcode[5]
 		  >> XYZ[0] >> XYZ[1] >> XYZ[2];
 
 	return true;

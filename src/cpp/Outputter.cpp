@@ -161,6 +161,9 @@ void COutputter::OutputElementInfo()
 			case ElementTypes::Bar: // Bar element
 				OutputBarElements(EleGrp);
 				break;
+			case ElementTypes::Beam:
+				OutputBeamElements(EleGrp);
+				break;
 		    default:
 		        *this << ElementType << " has not been implemented yet." << endl;
 		        break;
@@ -212,6 +215,51 @@ void COutputter::OutputBarElements(unsigned int EleGrp)
 
 	*this << endl;
 }
+void COutputter::OutputBeamElements(unsigned int EleGrp)
+{
+    CDomain* FEMData = CDomain::GetInstance();
+
+    CElementGroup& ElementGroup = FEMData->GetEleGrpList()[EleGrp];
+    unsigned int NUMMAT = ElementGroup.GetNUMMAT();
+
+    *this << " M A T E R I A L   D E F I N I T I O N" << endl
+          << endl;
+    *this << " NUMBER OF DIFFERENT SETS OF MATERIAL" << endl;
+    *this << " AND SECTION PROPERTIES  . . . . . . .( NPAR(3) ) . . =" << setw(5) << NUMMAT
+          << endl
+          << endl;
+
+    *this << "  SET       YOUNG'S     POISSON     SECTION      SECTION      " << endl
+          << " NUMBER     MODULUS      RATIO         a            b         " << endl
+          << "               E           nu" << endl;
+
+    *this << setiosflags(ios::scientific) << setprecision(5);
+
+    // 输出所有材料属性
+    for (unsigned int mset = 0; mset < NUMMAT; mset++)
+    {
+        *this << setw(5) << mset + 1;
+        ElementGroup.GetMaterial(mset).Write(*this);
+    }
+
+    *this << endl << endl
+          << " E L E M E N T   I N F O R M A T I O N" << endl;
+
+    *this << " ELEMENT     NODE     NODE       MATERIAL" << endl
+          << " NUMBER-N      I        J       SET NUMBER" << endl;
+
+    unsigned int NUME = ElementGroup.GetNUME();
+
+    // 输出所有单元信息
+    for (unsigned int Ele = 0; Ele < NUME; Ele++)
+    {
+        *this << setw(5) << Ele + 1;
+        ElementGroup[Ele].Write(*this);
+    }
+
+    *this << endl;
+}
+
 
 //	Print load data
 void COutputter::OutputLoadInfo()
@@ -297,7 +345,31 @@ void COutputter::OutputElementStress()
 				*this << endl;
 
 				break;
+			
+				
+            case ElementTypes::Beam:
+            *this << "  ELEMENT             FX                FY                FZ                MX                MY                MZ" << endl
+            << "  NUMBER         (Axial)         (Shear-Y)         (Shear-Z)         (Torsion)         (Moment-Y)         (Moment-Z)" << endl;
 
+            // 假设每个Beam单元有6个内力分量：Fx, Fy, Fz, Mx, My, Mz
+            double internalForces[6];
+
+            for (unsigned int Ele = 0; Ele < NUME; Ele++)
+            {
+            CElement& Element = EleGrp[Ele];
+            Element.ElementStress(internalForces, Displacement); // 这里假定ElementStress填充6个分量
+
+            *this << setw(5) << Ele + 1;
+            for (int i = 0; i < 6; ++i)
+            {
+            *this << setw(18) << internalForces[i];
+            }
+            *this << endl;
+            }
+
+            *this << endl;
+
+            break;
 			default: // Invalid element type
 				cerr << "*** Error *** Elment type " << ElementType
 					<< " has not been implemented.\n\n";

@@ -13,23 +13,24 @@
 #include <fstream>
 
 #include "Element.h"
-#include "Bar.h"
+#include "Elements/Bar.h"
 #include "Material.h"
 #include "Node.h"
-
+#include "Elements/Beam.h"
 using namespace std;
 
 //! Define set of element types
 enum ElementTypes
 {
     UNDEFINED = 0,
-    Bar,    // Bar element
-    Q4,     // 4Q element
-    T3,     // 3T element
-    H8,     // 8H element
-    Beam,   // Beam element
-    Plate,  // Plate element
-    Shell   // Shell elment
+    Bar=1,    // Bar element
+    Q4=2,     // 4Q element
+    T3=3,     // 3T element
+    H8=4,     // 8H element
+    Beam=5,   // Beam element
+    Plate=6,  // Plate element
+    Shell=7,// Shell elment
+    Q9 = 8, //Q9 elment
 };
 
 //! Element group class

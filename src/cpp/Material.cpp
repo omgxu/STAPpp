@@ -31,3 +31,22 @@ void CBarMaterial::Write(COutputter& output)
 {
 	output << setw(16) << E << setw(16) << Area << endl;
 }
+
+bool CBeamMaterial::Read(ifstream& Input)
+{
+	Input >> nset;
+
+	Input >> E >> nu >> a >> b >> t1 >> t2 >> t3 >> t4 >> n1 >> n2 >> n3;
+	t1 = 0.1;
+	t2 = 0.1;
+	t3 = 0.1;
+	t4 = 0.4;
+	n1 = n2 = 0;
+	n3 = -1;
+	return true;
+}
+
+void CBeamMaterial::Write(COutputter& output)
+{
+	output << setw(16) << E << setw(16) << nu << endl;
+}
