@@ -31,6 +31,9 @@ public:
 //!	Write element data to stream
 	virtual void Write(COutputter& output);
 
+//! Generate location matrix: the global equation number that corresponding to each DOF of the element
+	virtual void GenerateLocationMatrix();
+
 //!	Calculate element stiffness matrix
 	virtual void ElementStiffness(double* Matrix);
 

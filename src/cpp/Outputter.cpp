@@ -477,11 +477,11 @@ void COutputter::OutputElementStress()
 				{
 					CElement& Element = EleGrp.GetElement(Ele);
 					#ifndef _TEST_
-					static_cast<CT3&>(Element).ElementStress(stress3T, Displacement);
+					dynamic_cast<CT3&>(Element).ElementStress(stress3T, Displacement);
 					#else
-					static_cast<CTriangle&>(Element).ElementStress(stress3T, Displacement, GPPosition, GPDisplacement, weights3T);
+					dynamic_cast<CTriangle&>(Element).ElementStress(stress3T, Displacement, GPPosition, GPDisplacement, weights3T);
 					#endif
-					CT3Material material = *static_cast<CT3Material*>(Element.GetElementMaterial());
+					CT3Material material = *dynamic_cast<CT3Material*>(Element.GetElementMaterial());
 					
 					#ifndef _TEST_
 					*this << setw(5) << Ele + 1 << setw(20) << stress3T[0] 

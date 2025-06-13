@@ -12,6 +12,8 @@
 
 using namespace std;
 
+const int DOF_PER_NODE = 3;
+
 // dot product function of two 3D vectors
 inline double dot(const double* p1, const double* p2)
 {
@@ -71,7 +73,7 @@ bool CT3::Read(ifstream& Input, CMaterial* MaterialSets, CNode* NodeList)
     unsigned int N1, N2, N3; // node number
 
     Input >> N1 >> N2 >> N3 >> MSet;
-    ElementMaterial_ = static_cast<CT3Material*>(MaterialSets) + MSet - 1;
+    ElementMaterial_ = dynamic_cast<CT3Material*>(MaterialSets) + MSet - 1;
     nodes_[0] = &NodeList[N1 - 1];
     nodes_[1] = &NodeList[N2 - 1];
     nodes_[2] = &NodeList[N3 - 1];
@@ -86,6 +88,14 @@ void CT3::Write(COutputter& output)
            << setw(9)  << nodes_[1]->NodeNumber 
            << setw(9)  << nodes_[2]->NodeNumber 
            << setw(12) << ElementMaterial_->nset << endl;
+}
+
+void CT3::GenerateLocationMatrix()
+{
+    unsigned int i = 0;
+    for (unsigned int N = 0; N < NEN_; N++)
+        for (unsigned int D = 0; D < DOF_PER_NODE; D++)
+            LocationMatrix_[i++] = nodes_[N]->bcode[D];
 }
 
 void CT3::ElementStiffness(double* Matrix)
@@ -114,7 +124,7 @@ void CT3::ElementStiffness(double* Matrix)
 
 // Pointer to material of the element
     CT3Material& material =
-        *static_cast<CT3Material*>(ElementMaterial_); 
+        *dynamic_cast<CT3Material*>(ElementMaterial_); 
 
     auto E = material.E;
     auto v = material.nu;

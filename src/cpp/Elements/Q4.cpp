@@ -345,7 +345,7 @@ void CQ4::ElementStiffness(double* Matrix)
     const double gaussWeights[2][2] = {{1.0, 1.0}, {1.0, 1.0}};
 
     // Get material properties
-    const CQ4Material* material = static_cast<CQ4Material*>(ElementMaterial_);
+    const CQ4Material* material = dynamic_cast<CQ4Material*>(ElementMaterial_);
     const double& E = material->E;
     const double& v = material->nu;
 
@@ -424,7 +424,7 @@ void CQ4::ElementStress(double stress[12], double* Displacement)
     };
 
     // Get material properties
-    const CQ4Material* material = static_cast<CQ4Material*>(ElementMaterial_);
+    const CQ4Material* material = dynamic_cast<CQ4Material*>(ElementMaterial_);
     const double& E = material->E;  // Young's modulus
     const double& v = material->nu; // Poisson's ratio
 

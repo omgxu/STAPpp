@@ -16,6 +16,8 @@
 
 using namespace std;
 
+const int DOF_PER_NODE = 3;
+
 //	Constructor
 CBar::CBar()
 {
@@ -54,6 +56,14 @@ void CBar::Write(COutputter& output)
 {
 	output << setw(11) << nodes_[0]->NodeNumber
 		   << setw(9) << nodes_[1]->NodeNumber << setw(12) << ElementMaterial_->nset << endl;
+}
+
+void CBar::GenerateLocationMatrix()
+{
+	unsigned int i = 0;
+	for (unsigned int N = 0; N < NEN_; N++)
+		for (unsigned int D = 0; D < DOF_PER_NODE; D++)
+			LocationMatrix_[i++] = nodes_[N]->bcode[D];
 }
 
 //	Calculate element stiffness matrix 
