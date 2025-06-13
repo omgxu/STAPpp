@@ -1,6 +1,8 @@
+add_compile_options(-fexec-charset=UTF-8)
+
+cmake_minimum_required(VERSION 4.0)
 PROJECT(stap++)
 
-cmake_minimum_required(VERSION 3.1)
 set (CMAKE_CXX_STANDARD 11)
 
 OPTION(STAP++_DEBUG "Output detailed results for debugging." OFF)

@@ -8,6 +8,9 @@
 /*     http://www.comdyn.cn/                                                 */
 /*****************************************************************************/
 
+// 控制输出结果
+// unchanged
+
 #pragma once
 
 #include <fstream>
@@ -58,6 +61,9 @@ public:
 
 //!	Output Q4 element data
 	void OutputQ4Elements(unsigned int EleGrp);
+
+//!	Output T3 element data
+	void OutputT3Elements(unsigned int EleGrp);
 
 //!	Output load data 
 	void OutputLoadInfo(); 

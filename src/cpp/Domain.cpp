@@ -8,6 +8,7 @@
 /*     http://www.comdyn.cn/                                                 */
 /*****************************************************************************/
 
+
 #include "Domain.h"
 #include "Material.h"
 
@@ -78,22 +79,33 @@ bool CDomain::ReadData(string FileName, string OutFile)
 		exit(3);
 	}
 
+//  初始化输出模块（单例模式），并指定输出文件。
+//  用于后续输出模型信息、节点信息、刚度矩阵等
 	COutputter* Output = COutputter::GetInstance(OutFile);
 
 //	Read the heading line
 	Input.getline(Title, 256);
 	Output->OutputHeading();
 
-//	Read the control line
+//	Read the control line四个关键控制参数
+//  NUMNP = Total number of nodal points节点数
+//  NUMEG = Total number of element groups元素组数
+//  NLCASE = Total number of load cases载荷工况数
+//  MODEX = 0 : Data check only; MODEX = 1 : Execution
 	Input >> NUMNP >> NUMEG >> NLCASE >> MODEX;
 
 //	Read nodal point data
+//	调用 ReadNodalPoints() 方法读取节点坐标等信息
 	if (ReadNodalPoints())
         Output->OutputNodeInfo();
     else
         return false;
 
 //	Update equation number
+//  计算自由度编号（DOF编号）
+//  计算全局方程编号
+//  每个节点的每个自由度对应一个全局方程编号
+/* TODO CalculateEquationNumber? */
 	CalculateEquationNumber();
 	Output->OutputEquationNumber();
 
@@ -314,4 +326,3 @@ bool CDomain::AssembleForce(unsigned int LoadCase)
 
 	return true;
 }
-

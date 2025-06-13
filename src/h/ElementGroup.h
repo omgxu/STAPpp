@@ -13,8 +13,9 @@
 #include <fstream>
 
 #include "Element.h"
-#include "Elements/Bar.h"
+#include "Elements/Elements/Bar.h"
 #include "Elements/Q4.h"
+#include "Elements/T3.h"
 #include "Material.h"
 #include "Node.h"
 
@@ -24,13 +25,14 @@ using namespace std;
 enum ElementTypes
 {
     UNDEFINED = 0,
-    Bar,    // Bar element
-    Q4,     // 4Q element
-    T3,     // 3T element
-    H8,     // 8H element
-    Beam,   // Beam element
-    Plate,  // Plate element
-    Shell   // Shell elment
+    Bar = 1,    // Bar element
+    Q4 = 2,     // 4Q element
+    T3 = 3,     // 3T element
+    H8 = 4,     // 8H element
+    Beam = 5,   // Beam element
+    Plate = 6,  // Plate element
+    Shell = 7,  // Shell elment
+    Q9 = 8      // Q9 element
 };
 
 //! Element group class
@@ -80,6 +82,9 @@ public:
     //! Allocate array of derived materials
     void AllocateMaterials(std::size_t size);
 
+    //! Read element data from the input data file
+    bool ReadElementData(ifstream& Input);
+
     //! Return element type of this group
     ElementTypes GetElementType() { return ElementType_; }
 
@@ -89,6 +94,8 @@ public:
     //! operator []
     //! For the sake of efficiency, the index bounds are not checked
     CElement& operator[](unsigned int i);
+
+    CElement& GetElement(unsigned int i);
 
     //! Return the index-th material in this group
     CMaterial& GetMaterial(unsigned int i);

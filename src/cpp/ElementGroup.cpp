@@ -48,6 +48,11 @@ CElement& CElementGroup::operator[](unsigned int i)
     return *(CElement*)((std::size_t)(ElementList_) + i*ElementSize_);
 }
 
+CElement& CElementGroup::GetElement(unsigned int index)
+{
+    return *(CElement*)((std::size_t)(ElementList_) + index*ElementSize_);
+}
+
 //! Return index-th material in this element group
 CMaterial& CElementGroup::GetMaterial(unsigned int i)
 {
@@ -70,6 +75,10 @@ void CElementGroup::CalculateMemberSize()
             ElementSize_ = sizeof(CQ4);
             MaterialSize_ = sizeof(CQ4Material);
             break;
+        case ElementTypes::T3:
+            ElementSize_ = sizeof(CT3);
+            MaterialSize_ = sizeof(CT3Material);
+            break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::CalculateMemberSize." << std::endl;
             exit(5);
@@ -88,6 +97,9 @@ void CElementGroup::AllocateElements(std::size_t size)
         case ElementTypes::Q4:
             ElementList_ = new CQ4[size];
             break;
+        case ElementTypes::T3:
+            ElementList_ = new CT3[size];
+            break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::AllocateElement." << std::endl;
             exit(5);
@@ -104,6 +116,9 @@ void CElementGroup::AllocateMaterials(std::size_t size)
             break;
         case ElementTypes::Q4:
             MaterialList_ = new CQ4Material[size];
+            break;
+        case ElementTypes::T3:
+            MaterialList_ = new CT3Material[size];
             break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::AllocateMaterial." << std::endl;

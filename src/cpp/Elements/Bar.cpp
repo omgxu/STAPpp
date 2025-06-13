@@ -31,6 +31,8 @@ CBar::CBar()
 //	Desconstructor
 CBar::~CBar()
 {
+	delete[] nodes_;
+    delete[] LocationMatrix_;
 }
 
 //	Read element data from stream Input
@@ -119,6 +121,7 @@ void CBar::ElementStress(double* stress, double* Displacement)
 		L2 = L2 + DX[i]*DX[i];
 	}
 
+	// sigma=EBd -- S=EB
 	double S[6];
 	for (unsigned int i = 0; i < 3; i++)
 	{
