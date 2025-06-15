@@ -433,6 +433,19 @@ void CQ4::ElementStress(double stress[12], double* Displacement)
     const double etas[2] = {-pos, pos};
     const double psis[2] = {-pos, pos};
 
+    // Point order (counter-clockwise):
+    const int order[4][2] = {
+        {0, 0},  // Lower left  (-pos,-pos)
+        {1, 0},  // Lower right (+pos,-pos)
+        {1, 1},  // Upper right (+pos,+pos)
+        {0, 1}   // Upper left  (-pos,+pos) 
+    };
+
+    for(int gp = 0; gp < 4; gp++) {
+        CalculateStressAt(etas[order[gp][0]], psis[order[gp][1]], xe, ye, E, v, de, stress + gp * 3);
+    }
+
+    /*
     // Calculate stresses at each Gauss point
     for(int i = 0; i < 2; i++) {
         for(int j = 0; j < 2; j++) {
@@ -440,6 +453,7 @@ void CQ4::ElementStress(double stress[12], double* Displacement)
             CalculateStressAt(etas[i], psis[j], xe, ye, E, v, de, stress + index);
         }
     }
+    */
 }
 
 /**
@@ -457,13 +471,12 @@ void CQ4::CalculateGaussPointCoordinates(double* gaussCoords)
     const double eta[2] = {-pos, pos};
     const double psi[2] = {-pos, pos};
 
-    // Standard integration point order (counter-clockwise):
-    // (-pos,-pos), (+pos,-pos), (-pos,+pos), (+pos,+pos)
+    // Point order (counter-clockwise):
     const int order[4][2] = {
         {0, 0},  // Lower left  (-pos,-pos)
         {1, 0},  // Lower right (+pos,-pos)
-        {0, 1},  // Upper left  (-pos,+pos) 
-        {1, 1}   // Upper right (+pos,+pos)
+        {1, 1},  // Upper right (+pos,+pos)
+        {0, 1}   // Upper left  (-pos,+pos) 
     };
 
     int index = 0;
@@ -520,12 +533,12 @@ void CQ4::CalculateGaussPointDisplacement(double* gaussDisp, double* Displacemen
     const double eta[2] = {-pos, pos};
     const double psi[2] = {-pos, pos};
     
-    // Integration point order array
+    // Point order (counter-clockwise):
     const int order[4][2] = {
         {0, 0},  // Lower left  (-pos,-pos)
         {1, 0},  // Lower right (+pos,-pos)
-        {0, 1},  // Upper left  (-pos,+pos)
-        {1, 1}   // Upper right (+pos,+pos)
+        {1, 1},  // Upper right (+pos,+pos)
+        {0, 1}   // Upper left  (-pos,+pos) 
     };
 
     int index = 0;
