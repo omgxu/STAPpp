@@ -65,6 +65,9 @@ public:
 //!	Output T3 element data
 	void OutputT3Elements(unsigned int EleGrp);
 
+//!	Output beam element data	
+	void OutputBeamElements(unsigned int EleGrp);
+
 //!	Output load data 
 	void OutputLoadInfo(); 
 

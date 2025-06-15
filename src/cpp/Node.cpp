@@ -32,7 +32,7 @@ CNode::CNode(double X, double Y, double Z)
 bool CNode::Read(ifstream& Input)
 {
 	Input >> NodeNumber;	// node number
-	Input >> bcode[0] >> bcode[1] >> bcode[2]
+	Input >> bcode[0] >> bcode[1] >> bcode[2] >> bcode[3] >> bcode[4] >> bcode[5]
 		  >> XYZ[0] >> XYZ[1] >> XYZ[2];
 
 	return true;

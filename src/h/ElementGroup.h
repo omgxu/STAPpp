@@ -16,9 +16,9 @@
 #include "Elements/Bar.h"
 #include "Elements/Q4.h"
 #include "Elements/T3.h"
+#include "Elements/Beam.h"
 #include "Material.h"
 #include "Node.h"
-
 using namespace std;
 
 //! Define set of element types
