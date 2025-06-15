@@ -1,138 +1,255 @@
-
-
-////时间原因尚未完成，有待进一步完善////
-
-
-#include <fstream>
-#include <string>
-#include <iostream>
-#include <iomanip>
 #include <vector>
-#include <TecplotOutputter.h>
-#include <cmath>
+#include <iostream>
+#include "Domain.h"
+#include "ElementGroup.h"
+#include "Elements/T3.h"  // 包含 T3 单元定义
 
 using namespace std;
 
-void NodalStress(
+// 前置声明
+vector<vector<double>> getT3ElementStressData(CElementGroup& eleGrp, double* displacement);
 
-) {
-    //从获取节点信息和单元信息
-    vector<vector<double>> NodalData = getNodalData();
+// 获取所有节点信息
+vector<vector<double>> TecplotOutPutter() {
+    CDomain* FEMData = CDomain::GetInstance();
+    double* displacement = FEMData->GetDisplacement();
+    vector<vector<double>> NodeStressData = getNodalData();
 
-    vector<double> NodalStress;
-    switch (ElementType)
-    {
-    case ElementTypes::Bar: // Bar element
-        BarNodalStress();
-        break;
-    case ElementTypes::Q4: // 3T element
-        Q4NodalStress(NodalData, ElementsData, NodalStress);
-        break;
-    case ElementTypes::T3: // 3T element
-        vector<vector<double>> ElementsData = getT3ElementStressData();
-        T3NodalStress(NodalData, ElementsData, NodalStress);
-        break;
-    case ElementTypes::H8: // 3T element
-        H8NodalStress();
-        break;
-    case ElementTypes::Beam: // 3T element
-        BeamNodalStress();
-        break;
-    case ElementTypes::Q9: // 3T element
-        Q9NodalStress();
-        break;
-    default:
-        *this << ElementType << " has not been implemented yet." << endl;
-        break;
-    }
-}
+    // 获取单元组列表
+    unsigned int numGroups = FEMData->GetNUMEG();
+    CElementGroup* eleGrpList = FEMData->GetEleGrpList();
 
-//Q4单元为常应变单元，应变在单元间不连续，需要通过周围单元的应力平均值来重构节点应力
-void Q4NodalStress(
-    const vector<vector<double>> nodedata,
-    const vector<vector<double>> elementdata,
-    vector<double>& nodestress
-) {
-    // 清空输出数组
-    nodestress.clear();
+    // 遍历所有单元组
+    for (unsigned int grpIdx = 0; grpIdx < numGroups; grpIdx++) {
+        CElementGroup& eleGrp = eleGrpList[grpIdx];
+        ElementTypes eleType = eleGrp.GetElementType();
 
-    // 获取节点数量
-    int nnp = nodedata.size();
-    //获取单元数量
-    int nel = elementdata.size();
+        // 根据单元类型选择处理方式
+        vector<vector<double>> ElementsData;
 
-    // 为每个节点初始化应力值
-    for (int i = 0; i < nnp; i++) {
-        // 添加节点号、X、Y坐标
-        nodestress.push_back(nodedata[i][0]); // 节点号
-        nodestress.push_back(nodedata[i][1] + 50 * nodedata[i][3]); // X坐标
-        nodestress.push_back(nodedata[i][2] + 50 * nodedata[i][4]); // Y坐标
+        switch (eleType) {
+        case ElementTypes::T3:  // T3单元处理
+            ElementsData = getT3ElementStressData(eleGrp, displacement);
+            T3NodalStress(ElementsData, NodeStressData); // 处理T3单元节点应力，整合进总体的节点信息数组
+            break;
 
-        // 初始化应力分量为0
-        nodestress.push_back(0.0); // σ_xx
-        nodestress.push_back(0.0); // σ_yy
-        nodestress.push_back(0.0); // σ_xy
-        //添加节点X、Y位移
-        nodestress.push_back(nodedata[i][3]); // X位移
-        nodestress.push_back(nodedata[i][4]); // Y位移
-        nodestress.push_back(0.0); //初始化计数位
-    }
-    //遍历单元
-    for (int j = 0; j < nel; j++) {
-        // 获取单元应力分量
-        double sigma_xx = elementdata[j][5];
-        double sigma_yy = elementdata[j][6];
-        double sigma_xy = elementdata[j][7];
+        case ElementTypes::Q4:  // Q4单元处理
+            ElementsData = getQ4ElementStressData(eleGrp, displacement);
+            Q4NodalStress(ElementsData, NodeStressData); // 处理Q4单元节点应力，整合进总体的节点信息数组
+			break;
 
-        // 对每个节点进行应力累加
-        for (int k = 1; k < 5; k++) {
-            int nodeIndex = nodeList[k] - 1; // 节点编号从1开始，转换为索引
-            nodestress[nodeIndex * 9 + 3] += sigma_xx; // σ_xx
-            nodestress[nodeIndex * 9 + 4] += sigma_yy; // σ_yy
-            nodestress[nodeIndex * 9 + 5] += sigma_xy; // σ_xy
-            nodestress[nodeIndex * 9 + 8] += 1.0; // 计数位加1
+        case ElementTypes::Bar:  // 杆单元示例（可根据需要扩展）
+            // ElementsData = processBarElementGroup(eleGrp, displacement);
+            break;
+
+        default:  // 其他未处理类型
+            cerr << "Unhandled element type: " << static_cast<int>(eleType)
+                << " in group " << grpIdx + 1 << endl;
+            break;
         }
+
     }
     for (int i = 0; i < nnp; i++) {
-        // 计算平均应力
-        if (nodestress[i * 9 + 8] > 0) {
-            nodestress[i * 9 + 3] /= nodestress[i * 9 + 8]; // σ_xx
-            nodestress[i * 9 + 4] /= nodestress[i * 9 + 8]; // σ_yy
-            nodestress[i * 9 + 5] /= nodestress[i * 9 + 8]; // σ_xy
+        // 计算平均应力,用计数器做平均
+        if (NodeStressData[i][7] > 0) {
+            NodeStressData[i][8] /= NodeStressData[i * 9 + 8]; // σ_xx
+            NodeStressData[i][9] /= NodeStressData[i * 9 + 8]; // σ_yy
+            NodeStressData[i][10] /= NodeStressData[i * 9 + 8]; // σ_xy
         }
     }
+    return NodeStressData;
 }
+
+
+
+void OutputTecplotDatafile(vector<vector<double> >& nodalData) {
+	// 输出Tecplot数据文件
+	ofstream outFile("output.dat");
+	if (!outFile) {
+		cerr << "Error opening output file." << endl;
+		return;
+	}
+
+	// 写入标题行
+	outFile << "TITLE = \"Nodal Data\"\n";
+	outFile << "VARIABLES = \"Node\", \"X\", \"Y\", \"Z\", \"Displacement_X\", \"Displacement_Y\", \"Displacement_Z\", \"Sigma_X\", \"Sigma_Y\", \"Tau_XY\"\n";
+	
+	// 写入节点数据
+	for (const auto& node : nodalData) {
+		for (size_t i = 0; i < node.size(); ++i) {
+			outFile << node[i];
+			if (i < node.size() - 1) outFile << " "; // 分隔符
+		}
+		outFile << "\n"; // 换行
+	}
+
+    //写入单元信息
+    CDomain* FEMData = CDomain::GetInstance();
+    double* displacement = FEMData->GetDisplacement();
+    vector<vector<double>> NodeStressData = getNodalData();
+
+    // 获取单元组列表
+    unsigned int numGroups = FEMData->GetNUMEG();
+    CElementGroup* eleGrpList = FEMData->GetEleGrpList();
+
+    // 遍历所有单元组
+    for (unsigned int grpIdx = 0; grpIdx < numGroups; grpIdx++) {
+        CElementGroup& eleGrp = eleGrpList[grpIdx];
+        ElementTypes eleType = eleGrp.GetElementType();
+
+        // 根据单元类型选择处理方式
+        vector<vector<double>> ElementsData;
+
+        switch (eleType) {
+        case ElementTypes::T3:  // T3单元处理
+            ElementsData = getT3ElementStressData(eleGrp, displacement);
+            T3NodalStress(ElementsData, NodeStressData); // 处理T3单元节点应力，整合进总体的节点信息数组
+            break;
+
+        case ElementTypes::Q4:  // Q4单元处理
+            ElementsData = getQ4ElementStressData(eleGrp, displacement);
+            Q4NodalStress(ElementsData, NodeStressData); // 处理Q4单元节点应力，整合进总体的节点信息数组
+            break;
+
+        case ElementTypes::Bar:  // 杆单元示例（可根据需要扩展）
+            // ElementsData = processBarElementGroup(eleGrp, displacement);
+            break;
+
+        default:  // 其他未处理类型
+            cerr << "Unhandled element type: " << static_cast<int>(eleType)
+                << " in group " << grpIdx + 1 << endl;
+            break;
+        }
+
+    }
+    outFile << "ZONE T=\"Element Data\"\n";
+
+	outFile.close();
+}
+
+
+// 获取节点数据
+vector<vector<double>> getNodalData() {
+    CDomain* FEMData = CDomain::GetInstance();
+    CNode* NodeList = FEMData->GetNodeList();
+    double* Displacement = FEMData->GetDisplacement();
+    unsigned int NUMNP = FEMData->GetNUMNP();
+
+    vector<vector<double>> nodalData; //节点编号、x坐标、y坐标、z坐标、x位移、y位移、z位移、σ_x、σ_y、τ_xy……
+    for (unsigned int np = 0; np < NUMNP; np++) {
+        vector<double> nodeData;
+        nodeData.push_back(np + 1); // 节点编号
+        nodeData.push_back(NodeList[np].XYZ[0]); // x坐标
+        nodeData.push_back(NodeList[np].XYZ[1]); // y坐标
+        nodeData.push_back(NodeList[np].XYZ[2]); // z坐标
+        // 添加节点位移（假设Displacement数组中索引为np*6, np*6+1，np*6+2对应x和y和z位移）
+        nodeData.push_back(Displacement[np * 6]);
+        nodeData.push_back(Displacement[np * 6 + 1]);
+        nodeData.push_back(Displacement[np * 6 + 2]);
+        nodeData.push_back(0.0);//初始化计数器
+        nodeData.push_back(0.0); // 初始化σ_x
+        nodeData.push_back(0.0); // 初始化σ_y
+        nodeData.push_back(0.0); // 初始化τ_xy
+        nodalData.push_back(nodeData);
+    }
+    return nodalData;
+}
+
+
+
+
+// 处理T3单元组的函数
+vector<vector<double>> getT3ElementStressData(CElementGroup& eleGrp, double* displacement) {
+    vector<vector<double>> t3ElementData;
+    unsigned int numElements = eleGrp.GetNUME();
+
+    for (unsigned int eleIdx = 0; eleIdx < numElements; eleIdx++) {
+        // 获取当前单元（确保是T3类型）
+        CT3* t3Element = dynamic_cast<CT3*>(&eleGrp[eleIdx]);
+        if (!t3Element) continue;
+
+        vector<double> elementInfo;
+
+        // 1. 添加单元编号（组内编号）
+        elementInfo.push_back(eleIdx + 1);
+
+        // 2. 添加节点编号
+        elementInfo.push_back(t3Element->nodes_[0]->NodeNumber);  // 节点1
+        elementInfo.push_back(t3Element->nodes_[1]->NodeNumber);  // 节点2
+        elementInfo.push_back(t3Element->nodes_[2]->NodeNumber);  // 节点3
+
+        // 3. 计算并添加应力分量
+        double stress[3] = { 0 };  // 存储应力分量
+        t3Element->ElementStress(stress, displacement);
+
+        elementInfo.push_back(stress[0]);  // σ_x
+        elementInfo.push_back(stress[1]);  // σ_y
+        elementInfo.push_back(stress[2]);  // τ_xy
+
+        t3ElementData.push_back(elementInfo);
+    }
+
+    return t3ElementData;
+}
+
+
+// 处理Q4单元组的函数
+vector<vector<double>> getQ4ElementStressData(CElementGroup& eleGrp, double* displacement) {
+    vector<vector<double>> q4ElementData;
+    unsigned int numElements = eleGrp.GetNUME();
+
+    for (unsigned int eleIdx = 0; eleIdx < numElements; eleIdx++) {
+        // 获取当前Q4单元
+        CQ4* q4Element = dynamic_cast<CQ4*>(&eleGrp[eleIdx]);
+        if (!q4Element) continue;  // 确保转换成功
+
+        vector<double> elementInfo;
+
+        // 1. 添加单元编号（组内编号）
+        elementInfo.push_back(eleIdx + 1);
+
+        // 2. 添加节点编号
+        elementInfo.push_back(q4Element->nodes_[0]->NodeNumber);  // 节点1
+        elementInfo.push_back(q4Element->nodes_[1]->NodeNumber);  // 节点2
+        elementInfo.push_back(q4Element->nodes_[2]->NodeNumber);  // 节点3
+        elementInfo.push_back(q4Element->nodes_[3]->NodeNumber);  // 节点4
+
+        // 3. 计算并添加应力分量（每个单元有4个高斯点，每个点3个应力分量）
+        double stress[12] = { 0 };  // 存储12个应力分量（4个高斯点 × 3分量）
+        q4Element->ElementStress(stress, displacement);
+
+        // 添加所有应力分量
+        for (int i = 0; i < 12; i++) {
+            elementInfo.push_back(stress[i]);
+        }
+
+        q4ElementData.push_back(elementInfo);
+    }
+
+    return q4ElementData;
+}
+
+
+
+
+
 
 
 //T3单元应变在单元间不连续，需要通过周围单元的应力平均值来重构节点应力
 void T3NodalStress(
-    const vector<vector<double>> nodedata,
     const vector<vector<double>> elementdata,
-    vector<double>& nodestress
+    vector<vector<double>>& nodestress
 ) {
-    // 清空输出数组
-    nodestress.clear();
-
     // 获取节点数量
-    int nnp = nodedata.size();
+    int nnp = nodestress.size();
     //获取单元数量
     int nel = elementdata.size();
 
-    // 为每个节点初始化应力值
+    // 为每个节点添加位移放大
     for (int i = 0; i < nnp; i++) {
         // 添加节点号、X、Y坐标
-        nodestress.push_back(nodedata[i][0]); // 节点号
-        nodestress.push_back(nodedata[i][1] + 50 * nodedata[i][3]); // X坐标
-        nodestress.push_back(nodedata[i][2] + 50 * nodedata[i][4]); // Y坐标
-
-        // 初始化应力分量为0
-        nodestress.push_back(0.0); // σ_xx
-        nodestress.push_back(0.0); // σ_yy
-        nodestress.push_back(0.0); // σ_xy
-        //添加节点X、Y位移
-        nodestress.push_back(nodedata[i][3]); // X位移
-        nodestress.push_back(nodedata[i][4]); // Y位移
-        nodestress.push_back(0.0); //初始化计数位
+        nodestress[i][1] += 50 * nodestress[i][4]); // X坐标
+        nodestress[i][2] += 50 * nodestress[i][5]); // Y坐标
     }
     //遍历单元
     for (int j = 0; j < nel; j++) {
@@ -144,145 +261,43 @@ void T3NodalStress(
         // 对每个节点进行应力累加
         for (int k = 1; k < 4; k++) {
             int nodeIndex = nodeList[k] - 1; // 节点编号从1开始，转换为索引
-            nodestress[nodeIndex * 9 + 3] += sigma_xx; // σ_xx
-            nodestress[nodeIndex * 9 + 4] += sigma_yy; // σ_yy
-            nodestress[nodeIndex * 9 + 5] += sigma_xy; // σ_xy
-            nodestress[nodeIndex * 9 + 8] += 1.0; // 计数位加1
+            nodestress[nodeIndex][8] += sigma_xx; // σ_xx
+            nodestress[nodeIndex][9] += sigma_yy; // σ_yy
+            nodestress[nodeIndex][10] += sigma_xy; // σ_xy
+            nodestress[nodeIndex][7] += 1.0; // 计数位加1
         }
     }
+}
+
+
+
+//Q4单元为常应变单元，应变在单元间不连续，需要通过周围单元的最近的高斯点的应力平均值来重构节点应力
+void Q4NodalStress(
+    const vector<vector<double>> elementdata,
+    vector<vector<double>>& nodestress
+) {
+    // 获取节点数量
+    int nnp = nodestress.size();
+    //获取单元数量
+    int nel = elementdata.size();
+
+    // 为每个节点添加位移放大
     for (int i = 0; i < nnp; i++) {
-        // 计算平均应力
-        if (nodestress[i * 9 + 8] > 0) {
-            nodestress[i * 9 + 3] /= nodestress[i * 9 + 8]; // σ_xx
-            nodestress[i * 9 + 4] /= nodestress[i * 9 + 8]; // σ_yy
-            nodestress[i * 9 + 5] /= nodestress[i * 9 + 8]; // σ_xy
+        // 添加节点号、X、Y坐标
+        nodestress[i][1] += 50 * nodestress[i][4]); // X坐标
+        nodestress[i][2] += 50 * nodestress[i][5]); // Y坐标
+    }
+    //遍历单元
+    for (int j = 0; j < nel; j++) {
+        // 对每个节点进行应力累加
+        for (int k = 1; k < 5; k++) {
+            int nodeIndex = nodeList[k] - 1; // 节点编号从1开始，转换为索引
+            nodestress[nodeIndex][8] += elementdata[j][4 * k + 1]; // σ_xx
+            nodestress[nodeIndex][9] += elementdata[j][4 * k + 2]; // σ_yy
+            nodestress[nodeIndex][10] += elementdata[j][4 * k + 3]; // σ_xy
+            nodestress[nodeIndex][7] += 1.0; // 计数位加1
         }
     }
 }
 
 
-//H8单元应变连续，可以直接通过节点处的位移梯度来求解节点应力
-void H8NodalStress(
-    const vector<vector<double>> nodedata,
-    const vector<vector<double>> elementdata,
-    vector<double>& nodestress
-) {
-
-}
-
-
-//Beam单元应变在单元间不连续，需要通过周围单元的应力平均值来重构节点应力
-void BeamNodalStress(
-    const vector<vector<double>> nodedata,
-    const vector<vector<double>> elementdata,
-    vector<double>& nodestress
-) {
-
-}
-
-
-//Q9单元应变在单元间连续，可以直接通过节点处的位移梯度来求解节点应力
-void Q9NodalStress(
-    const vector<vector<double>> nodedata,
-    const vector<vector<double>> elementdata,
-    vector<double>& nodestress
-) {
-
-}
-
-
-
-
-vector<vector<double>> getNodalData() {
-    CDomain* FEMData = CDomain::GetInstance();
-    CNode* NodeList = FEMData->GetNodeList();
-    double* Displacement = FEMData->GetDisplacement();
-    unsigned int NUMNP = FEMData->GetNUMNP();
-
-    vector<vector<double>> nodalData; //节点编号、x坐标、y坐标、x位移、y位移
-    for (unsigned int np = 0; np < NUMNP; np++) {
-        vector<double> nodeData;
-        nodeData.push_back(np + 1); // 节点编号
-        nodeData.push_back(NodeList[np].GetX()); // x坐标
-        nodeData.push_back(NodeList[np].GetY()); // y坐标
-        // 添加节点位移（假设Displacement数组中索引为np*3, np*3+1对应x和y位移）
-        nodeData.push_back(Displacement[np * 3]);
-        nodeData.push_back(Displacement[np * 3 + 1]);
-        nodalData.push_back(nodeData);
-    }
-    return nodalData;
-}
-
-vector<vector<double>> getT3ElementStressData() {
-    CDomain* FEMData = CDomain::GetInstance();
-    double* Displacement = FEMData->GetDisplacement();
-    unsigned int NUMEG = FEMData->GetNUMEG();
-    vector<vector<double>> elementStressData; //单元编号、节点编号列表、单元应力
-
-    for (unsigned int EleGrpIndex = 0; EleGrpIndex < NUMEG; EleGrpIndex++) {
-        CElementGroup& EleGrp = FEMData->GetEleGrpList()[EleGrpIndex];
-        unsigned int NUME = EleGrp.GetNUME();
-        ElementTypes ElementType = EleGrp.GetElementType();
-
-        for (unsigned int Ele = 0; Ele < NUME; Ele++) {
-            CElement& Element = EleGrp[Ele];
-            vector<double> elementData;
-            elementData.push_back(Ele + 1); // 单元编号
-
-            // 获取单元节点编号
-            vector<int> nodeList = Element.GetNodeList();
-            for (int node : nodeList) {
-                elementData.push_back(node);
-            }
-
-            // 计算单元应力
-            double* stress;
-            CT3::ElementStress(stress, Displacement);
-            for (int i = 0; i < 3; i++)
-            {
-                elementData.push_back(stress[i]); // 添加应力分量
-            }
-
-            elementStressData.push_back(elementData);
-        }
-    }
-    return elementStressData;
-}
-
-
-
-vector<vector<double>> getQ4ElementStressData() {
-    CDomain* FEMData = CDomain::GetInstance();
-    double* Displacement = FEMData->GetDisplacement();
-    unsigned int NUMEG = FEMData->GetNUMEG();
-    vector<vector<double>> elementStressData; //单元编号、节点编号列表、单元应力
-
-    for (unsigned int EleGrpIndex = 0; EleGrpIndex < NUMEG; EleGrpIndex++) {
-        CElementGroup& EleGrp = FEMData->GetEleGrpList()[EleGrpIndex];
-        unsigned int NUME = EleGrp.GetNUME();
-        ElementTypes ElementType = EleGrp.GetElementType();
-
-        for (unsigned int Ele = 0; Ele < NUME; Ele++) {
-            CElement& Element = EleGrp[Ele];
-            vector<double> elementData;
-            elementData.push_back(Ele + 1); // 单元编号
-
-            // 获取单元节点编号
-            vector<int> nodeList = Element.GetNodeList();
-            for (int node : nodeList) {
-                elementData.push_back(node);
-            }
-
-            // 计算单元应力
-            double* stress;
-            CT3::ElementStress(stress, Displacement);
-            for (int i = 0; i < 3; i++)
-            {
-                elementData.push_back(stress[i]); // 添加应力分量
-            }
-
-            elementStressData.push_back(elementData);
-        }
-    }
-    return elementStressData;
-}
