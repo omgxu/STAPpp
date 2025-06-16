@@ -106,3 +106,21 @@ public:
 
 	virtual void Write(COutputter& output);
 };
+
+/********************/
+// Q9 material class by Chenxuan Xu
+/********************/
+class CQ9Material : public CMaterial
+{
+public:
+
+	double nu;
+
+public:
+	
+//!	Read material data from stream Input
+	virtual bool Read(ifstream& Input);
+
+//!	Write material data to Stream
+	virtual void Write(COutputter& output);
+};

@@ -96,6 +96,7 @@ public:
 
 //!	Calculate element stress 
 	virtual void ElementStress(double* stress, double* Displacement) = 0;
+    //virtual void ElementStress(double* stress, double* Displacement, double* Positions = nullptr);
 
 //! Calculate Gauss point coordinates
 	virtual void CalculateGaussPointCoordinates(double* gaussCoords) {}
@@ -117,4 +118,7 @@ public:
     
     //! Return the dimension of the location matrix
     inline unsigned int GetND() { return ND_; }
+
+    //! Calculate Gauss point displacement
+    virtual void CalculateGaussPointDisplacement(double* gaussDisp, double *Displacement) {}
 };

@@ -59,6 +59,11 @@ CMaterial& CElementGroup::GetMaterial(unsigned int i)
     return *(CMaterial*)((std::size_t)(MaterialList_) + i*MaterialSize_);
 }
 
+CElement& CElementGroup::GetElement(unsigned int index)
+{
+    return *(CElement*)((std::size_t)(ElementList_) + index*ElementSize_);
+}
+
 //! Calculate the size of the derived element and material class
 void CElementGroup::CalculateMemberSize()
 {
@@ -82,6 +87,9 @@ void CElementGroup::CalculateMemberSize()
         case ElementTypes::Beam:
             ElementSize_ = sizeof(CBeam);
             MaterialSize_ = sizeof(CBeamMaterial);
+        case ElementTypes::Q9:
+            ElementSize_ = sizeof(CQ9);
+            MaterialSize_ = sizeof(CQ9Material);
             break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::CalculateMemberSize." << std::endl;
@@ -106,6 +114,8 @@ void CElementGroup::AllocateElements(std::size_t size)
             break;
         case ElementTypes::Beam:
             ElementList_ = new CBeam[size];
+        case ElementTypes::Q9:
+            ElementList_ = new CQ9[size];
             break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::AllocateElement." << std::endl;
@@ -129,6 +139,8 @@ void CElementGroup::AllocateMaterials(std::size_t size)
             break;
         case ElementTypes::Beam:
             MaterialList_ = new CBeamMaterial[size];
+        case ElementTypes::Q9:
+            MaterialList_ = new CQ9Material[size];
             break;
         default:
             std::cerr << "Type " << ElementType_ << " not available. See CElementGroup::AllocateMaterial." << std::endl;

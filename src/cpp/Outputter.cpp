@@ -167,6 +167,8 @@ void COutputter::OutputElementInfo()
 				OutputT3Elements(EleGrp);
 			case ElementTypes::Beam:
 				OutputBeamElements(EleGrp);
+			case ElementTypes::Q9: // Q9 element
+				OutputQ9Elements(EleGrp);
 				break;
 		    default:
 		        *this << ElementType << " has not been implemented yet." << endl;
@@ -344,6 +346,45 @@ void COutputter::OutputT3Elements(unsigned int EleGrp)
 		ElementGroup[Ele].Write(*this);
 	}
 
+	*this << endl;
+}
+
+void COutputter::OutputQ9Elements(unsigned int EleGrp)
+{
+	CDomain* FEMData = CDomain::GetInstance();
+
+	CElementGroup& ElementGroup = FEMData->GetEleGrpList()[EleGrp];
+	unsigned int NUMMAT = ElementGroup.GetNUMMAT();
+
+	*this << " M A T E R I A L   D E F I N I T I O N" << endl
+		  << endl;
+	*this << " NUMBER OF DIFFERENT SETS OF MATERIAL" << endl;
+	*this << " AND CROSS-SECTIONAL CONSTANTS . . . . .( NPAR(3) ) . . =" << setw(5) << NUMMAT
+		  << endl
+		  << endl;
+
+	*this << "  SET       YOUNG'S        POISSON'S" << endl
+		  << " NUMBER     MODULUS          RATIO" << endl
+		  << "               E              nu" << endl;
+
+	*this << setiosflags(ios::scientific) << setprecision(5);
+
+	//	Loop over for all property sets
+	for (unsigned int mset = 0; mset < NUMMAT; mset++)
+		ElementGroup.GetMaterial(mset).Write(*this);
+
+	*this << endl
+		  << endl
+		  << " E L E M E N T   I N F O R M A T I O N" << endl;
+	*this << " ELEMENT     NODE     NODE     NODE     NODE     NODE     NODE     NODE     NODE     NODE   MATERIAL" << endl
+		  << " NUMBER-N      1        2        3        4        5        6       7         8       9    SET NUMBER" << endl;
+
+	//	Loop over for all elements in group EleGrp
+	for (unsigned int Ele = 0; Ele < ElementGroup.GetNUME(); Ele++)
+	{
+		*this << setw(5) << Ele+1;
+		ElementGroup[Ele].Write(*this);
+	}
 	*this << endl;
 }
 
@@ -578,6 +619,52 @@ void COutputter::OutputElementStress()
 
 				*this << endl;
 
+				break;
+			case ElementTypes::Q9:
+				*this << "    ELEMENT   GAUSS P           GUASS POINTS POSITIONS"
+					<< "                       GUASS POINTS STRESSES"
+					<< endl;
+				*this << "     NUMBER    INDEX " 
+					<< "               SX'X'         SY'Y'        SX'Y'"
+					<< endl;
+				double stresses9Q[3*9];
+				double Positions9Q[3*9];
+
+				for (unsigned int Ele = 0; Ele < NUME; Ele++)
+				{
+					static_cast<CQ9&>(
+						EleGrp.GetElement(Ele)).ElementStress(stresses9Q, Displacement);
+
+					for (unsigned i=0; i<9; ++i) { // 9 gauss points
+						*this << setw(8) << Ele + 1;
+						*this << setw(10) << i+1;
+						// *this << setw(17) << Positions9Q[i*3] << setw(14) << Positions9Q[i*3+1] << setw(14) << Positions9Q[i*3+2];
+						*this << setw(17) << stresses9Q[i*3] << setw(14) << stresses9Q[i*3+1] << setw(14) << stresses9Q[i*3+2];
+						*this << std::endl;
+					}
+				}
+
+                *this << "          D_X           D_Y           D_Z" << endl;
+				
+				double gaussDispQ9[27];
+				for (unsigned int Ele = 0; Ele < NUME; Ele++)
+				{
+					CElement& Element = EleGrp[Ele];
+					Element.CalculateGaussPointDisplacement(gaussDispQ9, Displacement);
+
+					*this << setw(5) << Ele + 1 << endl;
+
+					for (int i = 0; i < 9; i++)
+					{
+						*this << setw(17) << gaussDispQ9[i * 3]
+							  << setw(14) << gaussDispQ9[i * 3 + 1]
+							  << setw(14) << gaussDispQ9[i * 3 + 2] << endl;
+					}
+
+					*this << endl;
+				}
+
+				*this << endl;
 				break;
 			default: // Invalid element type
 				cerr << "*** Error *** Elment type " << ElementType

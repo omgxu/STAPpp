@@ -17,6 +17,7 @@
 #include "Elements/Q4.h"
 #include "Elements/T3.h"
 #include "Elements/Beam.h"
+#include "Elements/Q9.h"
 #include "Material.h"
 #include "Node.h"
 using namespace std;
@@ -99,6 +100,8 @@ public:
 
     //! Return the index-th material in this group
     CMaterial& GetMaterial(unsigned int i);
+
+    CElement& GetElement(unsigned int index);
 
     //! Return the number of material/section property setss in this element group
     unsigned int GetNUMMAT() { return NUMMAT_; }

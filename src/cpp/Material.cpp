@@ -87,3 +87,22 @@ void CBeamMaterial::Write(COutputter& output)
 {
 	output << setw(16) << E << setw(16) << nu << endl;
 }
+
+/***********************************/
+// Q9 material class by Chenxuan Xu//
+/***********************************/
+//	读取材料属性
+bool CQ9Material::Read(ifstream& Input)
+{
+	Input >> nset;	// 材料属性编号
+
+	Input >> E >> nu;	// 杨氏模量、泊松比
+
+	return true;
+}
+
+//	将材料属性输出至数据流
+void CQ9Material::Write(COutputter& output)
+{
+	output << setw(16) << E << setw(16) << nu << endl;
+}

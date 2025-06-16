@@ -68,6 +68,9 @@ public:
 //!	Output beam element data	
 	void OutputBeamElements(unsigned int EleGrp);
 
+//!	Output Q9 element data
+	void OutputQ9Elements(unsigned int EleGrp);
+
 //!	Output load data 
 	void OutputLoadInfo(); 
 
