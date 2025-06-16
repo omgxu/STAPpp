@@ -101,8 +101,6 @@ public:
     //! Return the index-th material in this group
     CMaterial& GetMaterial(unsigned int i);
 
-    CElement& GetElement(unsigned int index);
-
     //! Return the number of material/section property setss in this element group
     unsigned int GetNUMMAT() { return NUMMAT_; }
 };

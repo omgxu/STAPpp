@@ -119,6 +119,4 @@ public:
     //! Return the dimension of the location matrix
     inline unsigned int GetND() { return ND_; }
 
-    //! Calculate Gauss point displacement
-    virtual void CalculateGaussPointDisplacement(double* gaussDisp, double *Displacement) {}
 };

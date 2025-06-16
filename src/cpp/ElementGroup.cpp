@@ -59,11 +59,6 @@ CMaterial& CElementGroup::GetMaterial(unsigned int i)
     return *(CMaterial*)((std::size_t)(MaterialList_) + i*MaterialSize_);
 }
 
-CElement& CElementGroup::GetElement(unsigned int index)
-{
-    return *(CElement*)((std::size_t)(ElementList_) + index*ElementSize_);
-}
-
 //! Calculate the size of the derived element and material class
 void CElementGroup::CalculateMemberSize()
 {
