@@ -158,7 +158,7 @@ void COutputter::OutputElementInfo()
 
 		switch (ElementType)
 		{
-			case ElementTypes::Bar: // Bar element
+			case ElementTypes::Bar: 
 				OutputBarElements(EleGrp);
 				break;
 			case ElementTypes::Beam:
@@ -235,7 +235,7 @@ void COutputter::OutputBeamElements(unsigned int EleGrp)
 
     *this << setiosflags(ios::scientific) << setprecision(5);
 
-    // 输出所有材料属性
+   
     for (unsigned int mset = 0; mset < NUMMAT; mset++)
     {
         *this << setw(5) << mset + 1;
@@ -250,7 +250,6 @@ void COutputter::OutputBeamElements(unsigned int EleGrp)
 
     unsigned int NUME = ElementGroup.GetNUME();
 
-    // 输出所有单元信息
     for (unsigned int Ele = 0; Ele < NUME; Ele++)
     {
         *this << setw(5) << Ele + 1;
@@ -351,13 +350,12 @@ void COutputter::OutputElementStress()
             *this << "  ELEMENT             FX                FY                FZ                MX                MY                MZ" << endl
             << "  NUMBER         (Axial)         (Shear-Y)         (Shear-Z)         (Torsion)         (Moment-Y)         (Moment-Z)" << endl;
 
-            // 假设每个Beam单元有6个内力分量：Fx, Fy, Fz, Mx, My, Mz
             double internalForces[6];
 
             for (unsigned int Ele = 0; Ele < NUME; Ele++)
             {
             CElement& Element = EleGrp[Ele];
-            Element.ElementStress(internalForces, Displacement); // 这里假定ElementStress填充6个分量
+            Element.ElementStress(internalForces, Displacement); 
 
             *this << setw(5) << Ele + 1;
             for (int i = 0; i < 6; ++i)
