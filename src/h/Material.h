@@ -52,3 +52,19 @@ public:
 //!	Write material data to Stream
 	virtual void Write(COutputter& output);
 };
+
+//!	Material class for bar element
+class CH8Material : public CMaterial
+{
+public:
+
+	double E, nu;	//! Young's modulus and Poisson's ratio of a bar element
+
+public:
+	
+//!	Read material data from stream Input
+	virtual bool Read(ifstream& Input);
+
+//!	Write material data to Stream
+	virtual void Write(COutputter& output);
+};
