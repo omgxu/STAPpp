@@ -9,7 +9,9 @@
 /*****************************************************************************/
 
 #include "Domain.h"
-#include "Bar.h"
+#include "Elements/Bar.h"
+#include "Elements/H8.h"
+#include "Elements/T3.h"
 #include "Outputter.h"
 #include "Clock.h"
 

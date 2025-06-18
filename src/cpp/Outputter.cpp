@@ -161,6 +161,9 @@ void COutputter::OutputElementInfo()
 			case ElementTypes::Bar: // Bar element
 				OutputBarElements(EleGrp);
 				break;
+			case ElementTypes::H8: // H3 element
+				OutputH8Elements(EleGrp);
+				break;
 		    default:
 		        *this << ElementType << " has not been implemented yet." << endl;
 		        break;
@@ -200,6 +203,53 @@ void COutputter::OutputBarElements(unsigned int EleGrp)
     
 	*this << " ELEMENT     NODE     NODE       MATERIAL" << endl
 		  << " NUMBER-N      I        J       SET NUMBER" << endl;
+
+	unsigned int NUME = ElementGroup.GetNUME();
+
+	//	Loop over for all elements in group EleGrp
+	for (unsigned int Ele = 0; Ele < NUME; Ele++)
+    {
+        *this << setw(5) << Ele+1;
+		ElementGroup[Ele].Write(*this);
+    }
+
+	*this << endl;
+}
+
+//	Output H8 element data
+void COutputter::OutputH8Elements(unsigned int EleGrp)
+{
+	CDomain* FEMData = CDomain::GetInstance();
+
+	CElementGroup& ElementGroup = FEMData->GetEleGrpList()[EleGrp];
+	unsigned int NUMMAT = ElementGroup.GetNUMMAT();
+
+	*this << " M A T E R I A L   D E F I N I T I O N" << endl
+		  << endl;
+	*this << " NUMBER OF DIFFERENT SETS OF MATERIAL" << endl;
+	*this << " AND CROSS-SECTIONAL  CONSTANTS  . . . .( NPAR(3) ) . . =" << setw(5) << NUMMAT
+		  << endl
+		  << endl;
+
+	*this << "  SET       YOUNG'S     POISSON'S" << endl
+		  << " NUMBER     MODULUS       RATIO" << endl
+		  << "               E            NU" << endl;
+
+	*this << setiosflags(ios::scientific) << setprecision(5);
+
+	//	Loop over for all property sets
+	for (unsigned int mset = 0; mset < NUMMAT; mset++)
+    {
+        *this << setw(5) << mset+1;
+		ElementGroup.GetMaterial(mset).Write(*this);
+    }
+
+	*this << endl << endl
+		  << " E L E M E N T   I N F O R M A T I O N" << endl;
+    
+	// output 8 nodes
+	*this << " ELEMENT     NODE     NODE     NODE     NODE     NODE     NODE     NODE     NODE       MATERIAL" << endl
+		  << " NUMBER-N      1        2        3        4        5        6        7        8       SET NUMBER" << endl;
 
 	unsigned int NUME = ElementGroup.GetNUME();
 

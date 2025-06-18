@@ -16,8 +16,10 @@
 #include <vector>
 #include <utility>
 #include <stdexcept>
+#include <string>
 
 using namespace std;
+const int ngp = 2; // 高斯积分点个数
 
 //	Constructor
 CH8::CH8()
@@ -44,7 +46,7 @@ bool CH8::Read(ifstream& Input, CMaterial* MaterialSets, CNode* NodeList)
 	unsigned int MSet;	// Material property set number
 	unsigned int N1, N2, N3, N4, N5, N6, N7, N8;	// Eight node numbers
     Input >> N1 >> N2 >> N3 >> N4 >> N5 >> N6 >> N7 >> N8 >> MSet;
-    ElementMaterial_ = dynamic_cast<CBarMaterial*>(MaterialSets) + MSet - 1;
+    ElementMaterial_ = dynamic_cast<CH8Material*>(MaterialSets) + MSet - 1;
 
 	nodes_[0] = &NodeList[N1 - 1];
 	nodes_[1] = &NodeList[N2 - 1];
@@ -296,7 +298,6 @@ void CH8::ElementStiffness(double* Matrix)
 
     vector<vector<double>> K(6, vector<double>(6));
 
-    int ngp = 2; // 高斯积分点个数
     std::vector<double> w, gp;
     gauss(ngp, w, gp); // 高斯积分点和权重
 
@@ -324,29 +325,62 @@ void CH8::ElementStiffness(double* Matrix)
 //	Calculate element stress 
 void CH8::ElementStress(double* stress, double* Displacement)
 {
-	CBarMaterial* material_ = dynamic_cast<CBarMaterial*>(ElementMaterial_);	// Pointer to material of the element
+    // Nodal coordinates
+    const CNode& n1 = *nodes_[0];
+    const CNode& n2 = *nodes_[1];
+    const CNode& n3 = *nodes_[2];
+    const CNode& n4 = *nodes_[3];
+    const CNode& n5 = *nodes_[4];
+    const CNode& n6 = *nodes_[5];
+    const CNode& n7 = *nodes_[6];
+    const CNode& n8 = *nodes_[7];
 
-	double DX[3];	//	dx = x2-x1, dy = y2-y1, dz = z2-z1
-	double L2 = 0;	//	Square of bar length (L^2)
+    // Coordinate matrix C
+    std::vector<std::vector<double>> C = {
+        {n1.XYZ[0], n1.XYZ[1], n1.XYZ[2]},
+        {n2.XYZ[0], n2.XYZ[1], n2.XYZ[2]},
+        {n3.XYZ[0], n3.XYZ[1], n3.XYZ[2]},
+        {n4.XYZ[0], n4.XYZ[1], n4.XYZ[2]},
+        {n5.XYZ[0], n5.XYZ[1], n5.XYZ[2]},
+        {n6.XYZ[0], n6.XYZ[1], n6.XYZ[2]},
+        {n7.XYZ[0], n7.XYZ[1], n7.XYZ[2]},
+        {n8.XYZ[0], n8.XYZ[1], n8.XYZ[2]}
+    };
 
-	for (unsigned int i = 0; i < 3; i++)
-	{
-		DX[i] = nodes_[1]->XYZ[i] - nodes_[0]->XYZ[i];
-		L2 = L2 + DX[i]*DX[i];
-	}
+    CH8Material& material =*static_cast<CH8Material*>(ElementMaterial_); 
 
-	// sigma=EBd -- S=EB
-	double S[6];
-	for (unsigned int i = 0; i < 3; i++)
-	{
-		S[i] = -DX[i] * material_->E / L2;
-		S[i+3] = -S[i];
-	}
-	
-	*stress = 0.0;
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		if (LocationMatrix_[i])
-			*stress += S[i] * Displacement[LocationMatrix_[i]-1];
-	}
+    // Elastic tensor matrix D
+    auto E = material.E;
+    auto v = material.nu;
+    double cofD = E / (1 - v * v);
+
+    double cofD = E / ((1 + v) * (1 - 2 * v));
+    vector<vector<double>> D(6, vector<double>(6, 0.0));
+    for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
+            D[i][j] = v;
+    for (int i = 0; i < 3; ++i)
+        D[i][i] = 1 - v;
+    for (int i = 3; i < 6; ++i)
+        D[i][i] = (1 - 2 * v) / 2.0;
+    for (int i = 0; i < 6; ++i)
+        for (int j = 0; j < 6; ++j)
+            D[i][j] *= cofD;
+
+    // Calculate the stress of 8 Gaussian points in sequence
+    std::vector<double> w, gp;
+    gauss(ngp, w, gp); // 高斯积分点和权重
+    std::vector<double> d(Displacement, Displacement + 24);
+
+    for (int i = 0; i < ngp; ++i) {
+        for (int j = 0; j < ngp; ++j) {
+            for (int k = 0; k < ngp; ++k){
+            double eta = gp[i];
+            double psi = gp[j];
+            double zeta = gp[k];
+            auto [B, detJ]=BmatElastH8(zeta,eta,psi,C);
+            auto epsilon = matmul(B, d);
+            }
+        }
+    }
 }
