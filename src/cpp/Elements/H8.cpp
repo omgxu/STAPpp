@@ -91,6 +91,17 @@ vector<vector<double>> matmul(const vector<vector<double>>& A, const vector<vect
     return C;
 }
 
+// matrix & vector multiplication
+// function overloading
+std::vector<double> matmul(const std::vector<std::vector<double>>& A, const std::vector<double>& x) {
+    size_t m = A.size(), n = A[0].size();
+    std::vector<double> y(m, 0.0);
+    for (size_t i = 0; i < m; ++i)
+        for (size_t j = 0; j < n; ++j)
+            y[i] += A[i][j] * x[j];
+    return y;
+}
+
 // transpose matrix
 vector<vector<double>> transpose(const vector<vector<double>>& A) {
     if (A.empty() || A[0].empty()) return {};
@@ -380,6 +391,13 @@ void CH8::ElementStress(double* stress, double* Displacement)
             double zeta = gp[k];
             auto [B, detJ]=BmatElastH8(zeta,eta,psi,C);
             auto epsilon = matmul(B, d);
+            auto sstress = matmul(D, epsilon);
+            stress[(4*i+2*j+k)*6] = sstress[0];
+            stress[(4*i+2*j+k)*6+1] = sstress[1];
+            stress[(4*i+2*j+k)*6+2] = sstress[2];
+            stress[(4*i+2*j+k)*6+3] = sstress[3];
+            stress[(4*i+2*j+k)*6+4] = sstress[4];
+            stress[(4*i+2*j+k)*6+5] = sstress[5];
             }
         }
     }
